@@ -24,7 +24,7 @@ export default defineConfig({
         name: 'Планировщик питания',
         short_name: 'Питание',
         description: 'Персональный планировщик питания и привычек',
-        theme_color: '#97728F',
+        theme_color: '#FAF6F8',
         background_color: '#FAF6F8',
         display: 'standalone',
         orientation: 'portrait',
@@ -38,6 +38,32 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+        globIgnores: ['**/index.html', '**/assets/excel-*.js', '**/assets/WeightPage-*.js'],
+        navigateFallback: '',
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'app-navigation',
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 10,
+              },
+            },
+          },
+          {
+            urlPattern: ({ request }) => request.destination === 'script',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'app-route-chunks',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 30 * 24 * 60 * 60,
+              },
+            },
+          },
+        ],
       },
     }),
   ],

@@ -23,13 +23,20 @@
 html,
 body,
 #root {
+  width: 100%;
   min-height: 100%;
+  min-height: 100dvh;
   background: #faf6f8;
   color: #382e3b;
 }
 
+html {
+  background: #faf6f8;
+}
+
 body {
   margin: 0;
+  min-width: 320px;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
@@ -37,6 +44,7 @@ body {
     radial-gradient(ellipse at 4% 2%, rgba(244, 220, 232, 0.58), transparent 34rem),
     radial-gradient(ellipse at 96% 18%, rgba(228, 222, 244, 0.52), transparent 31rem),
     #faf6f8;
+  background-attachment: fixed;
 }
 
 * {
@@ -106,6 +114,14 @@ h2 {
 
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+@supports (height: 100svh) {
+  html,
+  body,
+  #root {
+    min-height: 100svh;
+  }
 }
 
 .luxe-shell {
