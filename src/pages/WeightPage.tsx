@@ -5,6 +5,7 @@ import { db, getSettings, saveSettings } from '@/db/database';
 import { Button, Card, Confirm, EmptyState, Field, inputClass, Segmented, Sheet } from '@/components/ui/Ui';
 import { createId } from '@/lib/ids';
 import { todayIso, addDays, formatDate } from '@/lib/dates';
+import { parseLocalizedDecimal } from '@/lib/numbers';
 import type { WeightEntry } from '@/types';
 
 type Range = '30' | '90' | '180' | '365' | 'all';
@@ -20,6 +21,8 @@ export function WeightPage() {
   const [note, setNote] = useState('');
   const [removeId, setRemoveId] = useState<string | null>(null);
   const [goal, setGoal] = useState('');
+  const [goalError, setGoalError] = useState('');
+  const [weightError, setWeightError] = useState('');
 
   const filtered = useMemo(() => {
     if (range === 'all') return entries;
@@ -86,26 +89,42 @@ export function WeightPage() {
         )}
       </Card>
 
-      <div className="flex gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex">
         <input
           className={inputClass}
           placeholder="Цель, кг"
           inputMode="decimal"
           value={goal || (settings?.weightGoalKg ? String(settings.weightGoalKg) : '')}
-          onChange={(e) => setGoal(e.target.value)}
+          onChange={(e) => {
+            setGoal(e.target.value);
+            setGoalError('');
+          }}
         />
         <Button
           onClick={async () => {
-            const n = Number(goal);
-            if (!n) return;
+            const n = parseLocalizedDecimal(goal || String(settings?.weightGoalKg ?? ''));
+            if (n === undefined || n <= 0) {
+              setGoalError('Введите положительное число, например 62,5.');
+              return;
+            }
             await saveSettings({ weightGoalKg: n });
+            setGoal(String(n));
+            setGoalError('');
           }}
         >
           Цель
         </Button>
       </div>
+      {goalError && <p className="text-sm text-red-700">{goalError}</p>}
 
-      <Button className="w-full" onClick={() => { setEditing(null); setKg(''); setDate(todayIso()); setNote(''); setOpen(true); }}>
+      <Button className="w-full" onClick={() => {
+        setEditing(null);
+        setKg('');
+        setDate(todayIso());
+        setNote('');
+        setWeightError('');
+        setOpen(true);
+      }}>
         Добавить вес
       </Button>
 
@@ -118,8 +137,8 @@ export function WeightPage() {
         .reverse()
         .map((e) => (
           <Card key={e.id}>
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <div className="font-semibold">{e.kg} кг</div>
                 <div className="text-sm text-muted">{formatDate(e.date)}</div>
                 {e.note && <div className="text-sm">{e.note}</div>}
@@ -132,6 +151,7 @@ export function WeightPage() {
                     setKg(String(e.kg));
                     setDate(e.date);
                     setNote(e.note ?? '');
+                    setWeightError('');
                     setOpen(true);
                   }}
                 >
@@ -148,8 +168,17 @@ export function WeightPage() {
       <Sheet open={open} title={editing ? 'Изменить запись' : 'Новый вес'} onClose={() => setOpen(false)}>
         <div className="space-y-3">
           <Field label="Вес, кг">
-            <input className={inputClass} inputMode="decimal" value={kg} onChange={(e) => setKg(e.target.value)} />
+            <input
+              className={inputClass}
+              inputMode="decimal"
+              value={kg}
+              onChange={(e) => {
+                setKg(e.target.value);
+                setWeightError('');
+              }}
+            />
           </Field>
+          {weightError && <p className="text-sm text-red-700">{weightError}</p>}
           <Field label="Дата">
             <input className={inputClass} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </Field>
@@ -159,8 +188,15 @@ export function WeightPage() {
           <Button
             className="w-full"
             onClick={async () => {
-              const value = Number(kg);
-              if (!value || !date) return;
+              const value = parseLocalizedDecimal(kg);
+              if (value === undefined || value <= 0) {
+                setWeightError('Введите положительный вес, например 72,5.');
+                return;
+              }
+              if (!date) {
+                setWeightError('Укажите дату взвешивания.');
+                return;
+              }
               const now = new Date().toISOString();
               const entry: WeightEntry = {
                 id: editing?.id ?? createId(),
@@ -171,6 +207,7 @@ export function WeightPage() {
               };
               await db.weights.put(entry);
               setOpen(false);
+              setWeightError('');
             }}
           >
             Сохранить

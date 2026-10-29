@@ -76,9 +76,10 @@ export function SettingsPage() {
 
       <Card>
         <h2 className="mb-2 font-semibold">Данные</h2>
-        <div className="grid gap-2">
-          <Button onClick={() => setImportOpen(true)}>Импортировать Excel</Button>
+        <div className="grid min-w-0 gap-2">
+          <Button className="w-full min-w-0 justify-center whitespace-normal text-center" onClick={() => setImportOpen(true)}>Импортировать Excel</Button>
           <Button
+            className="w-full min-w-0 justify-center whitespace-normal text-center"
             variant="soft"
             onClick={async () => {
               downloadJson(`nutrition-backup-${new Date().toISOString().slice(0, 10)}.json`, await createBackup());
@@ -87,6 +88,7 @@ export function SettingsPage() {
             Резервная копия
           </Button>
           <Button
+            className="w-full min-w-0 justify-center whitespace-normal text-center"
             variant="soft"
             onClick={async () => {
               downloadJson(`nutrition-export-${new Date().toISOString().slice(0, 10)}.json`, await createBackup());
@@ -94,9 +96,10 @@ export function SettingsPage() {
           >
             Экспорт данных
           </Button>
-          <label className="block">
+          <label className="block min-w-0">
             <span className="mb-1 block text-sm text-muted">Восстановить из JSON</span>
             <input
+              className="block w-full min-w-0 text-xs"
               type="file"
               accept="application/json"
               onChange={async (e) => {
@@ -112,7 +115,7 @@ export function SettingsPage() {
               }}
             />
           </label>
-          <Button variant="danger" onClick={() => setWipeOpen(true)}>
+          <Button className="w-full min-w-0 justify-center whitespace-normal text-center" variant="danger" onClick={() => setWipeOpen(true)}>
             Очистить все данные
           </Button>
         </div>
